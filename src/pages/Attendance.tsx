@@ -20,7 +20,7 @@ import {
 export default function Attendance() {
   const { data: batches = [] } = useBatches();
   const { data: students = [] } = useStudents();
-  const [selectedBatch, setSelectedBatch] = useState<string>("");
+  const [selectedBatch, setSelectedBatch] = useState<string>("all");
   const [selectedDate, setSelectedDate] = useState<string>(
     new Date().toISOString().split("T")[0]
   );
@@ -28,10 +28,10 @@ export default function Attendance() {
   const [editing, setEditing] = useState<any>(null);
 
   const { data: attendance = [], isLoading } = useAttendance(
-    selectedBatch || undefined,
+    selectedBatch === "all" ? undefined : selectedBatch,
     undefined
   );
-  const { data: summary = [] } = useAttendanceSummary(selectedBatch || undefined);
+  const { data: summary = [] } = useAttendanceSummary(selectedBatch === "all" ? undefined : selectedBatch);
   const upsert = useUpsertAttendance();
   const remove = useDeleteAttendance();
 
@@ -128,8 +128,8 @@ export default function Attendance() {
               <SelectValue placeholder="All Batches" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All Batches</SelectItem>
-              {(batches as any[]).map((b) => (
+               <SelectItem value="all">All Batches</SelectItem>
+               {(batches as any[]).map((b) => (
                 <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
               ))}
             </SelectContent>
