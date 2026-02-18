@@ -15,7 +15,7 @@ import {
   UserCog,
   X,
 } from "lucide-react";
-import prepxLogo from "/placeholder.svg";
+import prepxLogo from "/prepx-logo.png";
 
 const navItems = [
   { label: "Dashboard", icon: LayoutDashboard, path: "/" },

@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { useAuth } from "@/hooks/useAuth";
 import { Loader2, Lock, Mail, ArrowRight } from "lucide-react";
-import prepxLogo from "/placeholder.svg";
+import prepxLogo from "/prepx-logo.png";
 import { getSafeErrorMessage } from "@/lib/utils";
 
 export default function Login() {
