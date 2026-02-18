@@ -461,7 +461,7 @@ export default function SettingsPage() {
 
       <div className="text-center py-8 border-t">
         <p className="text-sm text-muted-foreground">
-          © 2024 PREPX IQ Nexus. All rights reserved.
+          DESIGNED by SUHAIB & DEVELOPED by SHAHEEN
         </p>
       </div>
     </div>

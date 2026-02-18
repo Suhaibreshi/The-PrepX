@@ -129,7 +129,7 @@ export default function Login() {
 
           <div className="mt-8 pt-6 border-t border-slate-200">
             <p className="text-center text-xs text-slate-500">
-              © 2024 PREPX IQ Nexus. All rights reserved.
+              DESIGNED by SUHAIB & DEVELOPED by SHAHEEN
             </p>
           </div>
         </CardContent>

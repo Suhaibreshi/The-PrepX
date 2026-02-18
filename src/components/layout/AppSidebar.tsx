@@ -112,8 +112,7 @@ export default function AppSidebar({
       {(!collapsed || mobileOpen) && (
         <div className="border-t border-sidebar-border p-4">
           <p className="text-[10px] text-sidebar-muted text-center leading-tight">
-            © 2024 PREPX IQ Nexus<br />
-            <span className="font-medium text-sidebar-foreground">Education Management System</span>
+            <span className="font-medium text-sidebar-foreground">DESIGNED by SUHAIB & DEVELOPED by SHAHEEN</span>
           </p>
         </div>
       )}
