@@ -10,35 +10,38 @@
 -- ============================================================
 
 -- Function to check if current user has a specific role
+-- Note: Cast role to text for comparison since role is user_role enum type
 CREATE OR REPLACE FUNCTION public.user_has_role(target_role TEXT)
 RETURNS BOOLEAN AS $$
 BEGIN
   RETURN EXISTS (
     SELECT 1 FROM user_profiles
     WHERE id = auth.uid()
-    AND role = target_role
+    AND role::text = target_role
   );
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- Function to check if current user has any of the specified roles
+-- Note: Cast role to text for comparison since role is user_role enum type
 CREATE OR REPLACE FUNCTION public.user_has_any_role(target_roles TEXT[])
 RETURNS BOOLEAN AS $$
 BEGIN
   RETURN EXISTS (
     SELECT 1 FROM user_profiles
     WHERE id = auth.uid()
-    AND role = ANY(target_roles)
+    AND role::text = ANY(target_roles)
   );
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- Function to get current user's role
+-- Note: Return role as text since it's stored as user_role enum type
 CREATE OR REPLACE FUNCTION public.get_current_user_role()
 RETURNS TEXT AS $$
 BEGIN
   RETURN (
-    SELECT role FROM user_profiles
+    SELECT role::text FROM user_profiles
     WHERE id = auth.uid()
   );
 END;
