@@ -461,7 +461,7 @@ export default function SettingsPage() {
 
       <div className="text-center py-8 border-t">
         <p className="text-sm text-muted-foreground">
-          DESIGNED by SUHAIB & DEVELOPED by SHAHEEN
+          DESIGNED AND DEVELOPED BY SUHAIB REYAZ & SHAHEEN NAZIR
         </p>
       </div>
     </div>

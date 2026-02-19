@@ -112,7 +112,7 @@ export default function AppSidebar({
       {(!collapsed || mobileOpen) && (
         <div className="border-t border-sidebar-border p-4">
           <p className="text-[10px] text-sidebar-muted text-center leading-tight">
-            <span className="font-medium text-sidebar-foreground">DESIGNED by SUHAIB & DEVELOPED by SHAHEEN</span>
+            <span className="font-medium text-sidebar-foreground">DESIGNED AND DEVELOPED BY SUHAIB REYAZ & SHAHEEN NAZIR</span>
           </p>
         </div>
       )}

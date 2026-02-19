@@ -129,7 +129,7 @@ export default function Login() {
 
           <div className="mt-8 pt-6 border-t border-slate-200">
             <p className="text-center text-xs text-slate-500">
-              DESIGNED by SUHAIB & DEVELOPED by SHAHEEN
+              DESIGNED AND DEVELOPED BY SUHAIB REYAZ & SHAHEEN NAZIR
             </p>
           </div>
         </CardContent>
