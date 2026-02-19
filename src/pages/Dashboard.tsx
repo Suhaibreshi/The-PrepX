@@ -8,6 +8,7 @@ import {
   TrendingUp,
   CalendarCheck,
   Loader2,
+  BookOpen,
 } from "lucide-react";
 import StatCard from "@/components/dashboard/StatCard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -27,6 +28,8 @@ import {
 } from "recharts";
 import { motion } from "framer-motion";
 import { useDashboardMetrics } from "@/hooks/useDashboardMetrics";
+import { useCourses } from "@/hooks/useCrudHooks";
+import StatusBadge from "@/components/shared/StatusBadge";
 
 const CHART_COLORS = [
   "hsl(142, 71%, 45%)",
@@ -36,6 +39,7 @@ const CHART_COLORS = [
 
 export default function Dashboard() {
   const { data: metrics, isLoading, error } = useDashboardMetrics();
+  const { data: courses = [], isLoading: coursesLoading } = useCourses();
 
   const attendanceData = metrics
     ? [
@@ -73,8 +77,12 @@ export default function Dashboard() {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard title="Today's Classes" value={metrics?.todays_classes ?? 0} icon={CalendarCheck} color="primary" />
+        <StatCard title="Total Courses" value={courses.length} icon={BookOpen} color="info" />
         <StatCard title="Upcoming Exams" value={metrics?.upcoming_exams ?? 0} icon={ClipboardList} color="destructive" />
         <StatCard title="Total Collected" value={`₹${metrics?.total_collected?.toLocaleString() ?? 0}`} icon={TrendingUp} color="success" />
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard title="Total Parents" value={metrics?.total_parents ?? 0} icon={Users} color="info" />
       </div>
 
@@ -168,6 +176,53 @@ export default function Dashboard() {
                   <span className="font-heading font-bold text-destructive">₹{metrics?.overdue_fees?.toLocaleString() ?? 0}</span>
                 </div>
               </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+
+        {/* Courses List */}
+        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }} className="lg:col-span-2">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between">
+              <CardTitle className="font-heading text-base flex items-center gap-2">
+                <BookOpen className="h-5 w-5" />
+                Courses
+              </CardTitle>
+              {coursesLoading && <Loader2 className="h-4 w-4 animate-spin" />}
+            </CardHeader>
+            <CardContent>
+              {courses.length === 0 ? (
+                <p className="text-sm text-muted-foreground text-center py-8">No courses available.</p>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="border-b text-left">
+                        <th className="pb-3 text-sm font-medium text-muted-foreground">Course Name</th>
+                        <th className="pb-3 text-sm font-medium text-muted-foreground">Duration</th>
+                        <th className="pb-3 text-sm font-medium text-muted-foreground">Base Fee</th>
+                        <th className="pb-3 text-sm font-medium text-muted-foreground">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {courses.map((course: any) => (
+                        <tr key={course.id} className="border-b last:border-0">
+                          <td className="py-3 text-sm font-medium">{course.name}</td>
+                          <td className="py-3 text-sm text-muted-foreground">
+                            {course.duration_weeks ? `${course.duration_weeks} weeks` : "—"}
+                          </td>
+                          <td className="py-3 text-sm text-muted-foreground">
+                            {course.base_fee ? `₹${course.base_fee.toLocaleString()}` : "—"}
+                          </td>
+                          <td className="py-3">
+                            <StatusBadge status={course.is_active ? "active" : "inactive"} />
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
             </CardContent>
           </Card>
         </motion.div>
