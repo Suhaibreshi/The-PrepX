@@ -10,6 +10,7 @@ import Dashboard from "./pages/Dashboard";
 import Students from "./pages/Students";
 import Parents from "./pages/Parents";
 import Teachers from "./pages/Teachers";
+import Courses from "./pages/Courses";
 import Batches from "./pages/Batches";
 import Attendance from "./pages/Attendance";
 import Exams from "./pages/Exams";
@@ -18,6 +19,7 @@ import Messages from "./pages/Messages";
 import Notifications from "./pages/Notifications";
 import Reports from "./pages/Reports";
 import SettingsPage from "./pages/Settings";
+import ProfilePage from "./pages/Profile";
 import Login from "./pages/Login";
 import NotFound from "./pages/NotFound";
 
@@ -48,6 +50,7 @@ const App = () => (
               <Route path="/students" element={<Students />} />
               <Route path="/parents" element={<Parents />} />
               <Route path="/teachers" element={<Teachers />} />
+              <Route path="/courses" element={<Courses />} />
               <Route path="/batches" element={<Batches />} />
               <Route path="/attendance" element={<Attendance />} />
               <Route path="/exams" element={<Exams />} />
@@ -56,6 +59,7 @@ const App = () => (
               <Route path="/notifications" element={<Notifications />} />
               <Route path="/reports" element={<Reports />} />
               <Route path="/settings" element={<SettingsPage />} />
+              <Route path="/profile" element={<ProfilePage />} />
             </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>

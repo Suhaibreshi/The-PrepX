@@ -14,6 +14,7 @@ import {
   ChevronLeft,
   UserCog,
   X,
+  BookOpen,
 } from "lucide-react";
 import prepxLogo from "/prepx-logo.png";
 
@@ -22,6 +23,7 @@ const navItems = [
   { label: "Students", icon: GraduationCap, path: "/students" },
   { label: "Parents", icon: Users, path: "/parents" },
   { label: "Teachers", icon: UserCog, path: "/teachers" },
+  { label: "Courses", icon: BookOpen, path: "/courses" },
   { label: "Batches", icon: Layers, path: "/batches" },
   { label: "Attendance", icon: CalendarCheck, path: "/attendance" },
   { label: "Exams", icon: ClipboardList, path: "/exams" },
