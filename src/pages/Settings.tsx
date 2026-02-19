@@ -1,7 +1,6 @@
 import { useState } from "react";
 import {
   Settings as SettingsIcon,
-  Shield,
   Calendar,
   DollarSign,
   Mail,
@@ -27,89 +26,8 @@ import {
   useFeeTemplates,
   useUpsertFeeTemplate,
   useDeleteFeeTemplate,
-  useRolePermissions,
-  useUpdateRolePermission,
   useCourses,
 } from "@/hooks/useCrudHooks";
-
-// ─── Role Permissions Tab ─────────────────────────────────────
-function RolePermissionsTab() {
-  const { data: permissions = [], isLoading } = useRolePermissions();
-  const update = useUpdateRolePermission();
-
-  const ROLES = [
-    "super_admin",
-    "management_admin",
-    "academic_coordinator",
-    "teacher",
-    "finance_manager",
-    "support_staff",
-  ];
-
-  const ROLE_LABELS: Record<string, string> = {
-    super_admin: "Super Admin",
-    management_admin: "Management Admin",
-    academic_coordinator: "Academic Coordinator",
-    teacher: "Teacher",
-    finance_manager: "Finance Manager",
-    support_staff: "Support Staff",
-  };
-
-  const RESOURCES = [
-    "students", "teachers", "batches", "parents",
-    "fees", "exams", "attendance", "messages", "reports", "settings",
-  ];
-
-  if (isLoading) return <p className="text-sm text-muted-foreground">Loading permissions…</p>;
-
-  return (
-    <div className="space-y-6">
-      {ROLES.map((role) => {
-        const rolePerms = (permissions as any[]).filter((p) => p.role === role);
-        return (
-          <div key={role} className="rounded-lg border p-4">
-            <h3 className="font-heading font-semibold mb-3">{ROLE_LABELS[role]}</h3>
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="text-left text-muted-foreground">
-                    <th className="pb-2 pr-4 font-medium">Resource</th>
-                    <th className="pb-2 px-3 font-medium text-center">Read</th>
-                    <th className="pb-2 px-3 font-medium text-center">Create</th>
-                    <th className="pb-2 px-3 font-medium text-center">Update</th>
-                    <th className="pb-2 px-3 font-medium text-center">Delete</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {RESOURCES.map((resource) => {
-                    const perm = rolePerms.find((p) => p.resource === resource);
-                    if (!perm) return null;
-                    return (
-                      <tr key={resource} className="border-t">
-                        <td className="py-2 pr-4 capitalize">{resource}</td>
-                        {(["can_read", "can_create", "can_update", "can_delete"] as const).map((field) => (
-                          <td key={field} className="py-2 px-3 text-center">
-                            <Switch
-                              checked={perm[field]}
-                              onCheckedChange={(checked) =>
-                                update.mutate({ ...perm, [field]: checked })
-                              }
-                              disabled={update.isPending}
-                            />
-                          </td>
-                        ))}
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        );
-      })}
-    </div>
-  );
-}
 
 // ─── Academic Year Tab ────────────────────────────────────────
 function AcademicYearTab() {
@@ -379,28 +297,13 @@ export default function SettingsPage() {
         </div>
       </div>
 
-      <Tabs defaultValue="roles" className="space-y-4">
+      <Tabs defaultValue="academic" className="space-y-4">
         <TabsList className="overflow-x-auto flex-nowrap w-full justify-start">
-          <TabsTrigger value="roles">Role Permissions</TabsTrigger>
           <TabsTrigger value="academic">Academic Year</TabsTrigger>
           <TabsTrigger value="fees">Fee Templates</TabsTrigger>
           <TabsTrigger value="integrations">Integrations</TabsTrigger>
           <TabsTrigger value="branding">Branding</TabsTrigger>
         </TabsList>
-
-        <TabsContent value="roles">
-          <Card>
-            <CardHeader>
-              <CardTitle className="font-heading text-base flex items-center gap-2">
-                <Shield className="h-5 w-5 text-primary" />
-                Role-Based Access Control
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <RolePermissionsTab />
-            </CardContent>
-          </Card>
-        </TabsContent>
 
         <TabsContent value="academic">
           <Card>
