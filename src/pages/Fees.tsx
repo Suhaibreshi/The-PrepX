@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { DollarSign, Pencil, Trash2, CheckCircle, TrendingUp, AlertCircle } from "lucide-react";
 import DataPage from "@/components/shared/DataPage";
 import DataTable from "@/components/shared/DataTable";
@@ -20,7 +20,7 @@ export default function Fees() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<any>(null);
 
-  const fields: FormField[] = [
+  const fields: FormField[] = useMemo(() => [
     {
       key: "student_id", label: "Student", required: true, type: "select",
       options: (students as any[]).map((s) => ({ value: s.id, label: s.full_name })),
@@ -55,7 +55,7 @@ export default function Fees() {
     { key: "receipt_number", label: "Receipt Number", placeholder: "RCP-001" },
     { key: "discount", label: "Discount (₹)", type: "number", placeholder: "0" },
     { key: "description", label: "Description", placeholder: "Fee description" },
-  ];
+  ], [students, batches]);
 
   const columns = [
     {

@@ -32,7 +32,15 @@ export default function EntityDialog({ open, onClose, title, fields, initialData
     if (open) {
       const initial: Record<string, string> = {};
       fields.forEach((f) => {
-        initial[f.key] = initialData?.[f.key] ?? "";
+        const value = initialData?.[f.key];
+        // Convert value to string, handling null/undefined and objects
+        if (value === null || value === undefined) {
+          initial[f.key] = "";
+        } else if (typeof value === "object") {
+          initial[f.key] = "";
+        } else {
+          initial[f.key] = String(value);
+        }
       });
       setForm(initial);
     }
@@ -40,7 +48,26 @@ export default function EntityDialog({ open, onClose, title, fields, initialData
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit({ ...form, id: initialData?.id });
+    // Convert form values to proper types based on field type
+    const processedData: Record<string, any> = { id: initialData?.id };
+    fields.forEach((f) => {
+      const value = form[f.key];
+      if (f.type === "number") {
+        // Convert to number or undefined if empty
+        const numValue = value ? parseFloat(value) : undefined;
+        processedData[f.key] = numValue;
+      } else if (f.type === "date") {
+        // Keep as string or undefined if empty
+        processedData[f.key] = value || undefined;
+      } else if (f.type === "select") {
+        // For select, empty string should be undefined/null
+        processedData[f.key] = value || undefined;
+      } else {
+        // For text fields, keep as string
+        processedData[f.key] = value || undefined;
+      }
+    });
+    onSubmit(processedData);
   };
 
   return (

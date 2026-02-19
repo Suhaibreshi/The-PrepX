@@ -25,7 +25,7 @@ export function useUpsertStudent() {
   return useMutation({
     mutationFn: async (student: {
       id?: string;
-      full_name: string;
+      full_name?: string;
       email?: string;
       phone?: string;
       status?: string;
@@ -34,15 +34,20 @@ export function useUpsertStudent() {
       address?: string;
       notes?: string;
     }) => {
+      // Validate required fields
+      if (!student.full_name?.trim()) {
+        throw new Error("Full name is required");
+      }
+      
       const payload = {
-        full_name: student.full_name,
-        email: student.email || null,
-        phone: student.phone || null,
+        full_name: student.full_name.trim(),
+        email: student.email?.trim() || null,
+        phone: student.phone?.trim() || null,
         status: (student.status as any) || "active",
         date_of_birth: student.date_of_birth || null,
-        gender: student.gender || null,
-        address: student.address || null,
-        notes: student.notes || null,
+        gender: student.gender?.trim() || null,
+        address: student.address?.trim() || null,
+        notes: student.notes?.trim() || null,
       };
       if (student.id) {
         const { error } = await supabase.from("students").update(payload).eq("id", student.id);
@@ -99,7 +104,7 @@ export function useUpsertTeacher() {
   return useMutation({
     mutationFn: async (t: {
       id?: string;
-      full_name: string;
+      full_name?: string;
       email?: string;
       phone?: string;
       subject?: string;
@@ -110,17 +115,22 @@ export function useUpsertTeacher() {
       address?: string;
       notes?: string;
     }) => {
+      // Validate required fields
+      if (!t.full_name?.trim()) {
+        throw new Error("Full name is required");
+      }
+      
       const payload = {
-        full_name: t.full_name,
-        email: t.email || null,
-        phone: t.phone || null,
-        subject: t.subject || null,
+        full_name: t.full_name.trim(),
+        email: t.email?.trim() || null,
+        phone: t.phone?.trim() || null,
+        subject: t.subject?.trim() || null,
         status: (t.status as any) || "active",
-        qualification: t.qualification || null,
+        qualification: t.qualification?.trim() || null,
         experience_yrs: t.experience_yrs ?? null,
-        gender: t.gender || null,
-        address: t.address || null,
-        notes: t.notes || null,
+        gender: t.gender?.trim() || null,
+        address: t.address?.trim() || null,
+        notes: t.notes?.trim() || null,
       };
       if (t.id) {
         const { error } = await supabase.from("teachers").update(payload).eq("id", t.id);
@@ -177,7 +187,7 @@ export function useUpsertBatch() {
   return useMutation({
     mutationFn: async (b: {
       id?: string;
-      name: string;
+      name?: string;
       schedule?: string;
       status?: string;
       teacher_id?: string;
@@ -188,16 +198,21 @@ export function useUpsertBatch() {
       description?: string;
       academic_year_id?: string;
     }) => {
+      // Validate required fields
+      if (!b.name?.trim()) {
+        throw new Error("Batch name is required");
+      }
+      
       const payload = {
-        name: b.name,
-        schedule: b.schedule || null,
+        name: b.name.trim(),
+        schedule: b.schedule?.trim() || null,
         status: (b.status as any) || "active",
         teacher_id: b.teacher_id || null,
         course_id: b.course_id || null,
         start_date: b.start_date || null,
         end_date: b.end_date || null,
         capacity: b.capacity ?? null,
-        description: b.description || null,
+        description: b.description?.trim() || null,
         academic_year_id: b.academic_year_id || null,
       };
       if (b.id) {
@@ -255,18 +270,23 @@ export function useUpsertParent() {
   return useMutation({
     mutationFn: async (p: {
       id?: string;
-      full_name: string;
+      full_name?: string;
       email?: string;
       phone?: string;
       address?: string;
       occupation?: string;
     }) => {
+      // Validate required fields
+      if (!p.full_name?.trim()) {
+        throw new Error("Full name is required");
+      }
+      
       const payload = {
-        full_name: p.full_name,
-        email: p.email || null,
-        phone: p.phone || null,
-        address: p.address || null,
-        occupation: p.occupation || null,
+        full_name: p.full_name.trim(),
+        email: p.email?.trim() || null,
+        phone: p.phone?.trim() || null,
+        address: p.address?.trim() || null,
+        occupation: p.occupation?.trim() || null,
       };
       if (p.id) {
         const { error } = await supabase.from("parents").update(payload).eq("id", p.id);
@@ -323,15 +343,20 @@ export function useUpsertCourse() {
   return useMutation({
     mutationFn: async (c: {
       id?: string;
-      name: string;
+      name?: string;
       description?: string;
       duration_weeks?: number;
       base_fee?: number;
       is_active?: boolean;
     }) => {
+      // Validate required fields
+      if (!c.name?.trim()) {
+        throw new Error("Course name is required");
+      }
+      
       const payload = {
-        name: c.name,
-        description: c.description || null,
+        name: c.name.trim(),
+        description: c.description?.trim() || null,
         duration_weeks: c.duration_weeks ?? null,
         base_fee: c.base_fee ?? null,
         is_active: c.is_active ?? true,
@@ -389,10 +414,10 @@ export function useUpsertFee() {
   return useMutation({
     mutationFn: async (f: {
       id?: string;
-      student_id: string;
+      student_id?: string;
       batch_id?: string;
-      amount: number;
-      due_date: string;
+      amount?: number;
+      due_date?: string;
       paid_date?: string;
       status?: string;
       description?: string;
@@ -402,6 +427,17 @@ export function useUpsertFee() {
       discount?: number;
       late_fee?: number;
     }) => {
+      // Validate required fields
+      if (!f.student_id) {
+        throw new Error("Student is required");
+      }
+      if (!f.amount || f.amount <= 0) {
+        throw new Error("Amount must be greater than 0");
+      }
+      if (!f.due_date) {
+        throw new Error("Due date is required");
+      }
+      
       const payload = {
         student_id: f.student_id,
         batch_id: f.batch_id || null,
@@ -409,10 +445,10 @@ export function useUpsertFee() {
         due_date: f.due_date,
         paid_date: f.paid_date || null,
         status: (f.status as any) || "pending",
-        description: f.description || null,
+        description: f.description?.trim() || null,
         payment_method: (f.payment_method as any) || null,
-        transaction_ref: f.transaction_ref || null,
-        receipt_number: f.receipt_number || null,
+        transaction_ref: f.transaction_ref?.trim() || null,
+        receipt_number: f.receipt_number?.trim() || null,
         discount: f.discount ?? 0,
         late_fee: f.late_fee ?? 0,
       };
@@ -564,7 +600,7 @@ export function useUpsertExam() {
   return useMutation({
     mutationFn: async (e: {
       id?: string;
-      title: string;
+      title?: string;
       batch_id?: string;
       exam_date?: string;
       total_marks?: number;
@@ -574,8 +610,13 @@ export function useUpsertExam() {
       duration_minutes?: number;
       instructions?: string;
     }) => {
+      // Validate required fields
+      if (!e.title?.trim()) {
+        throw new Error("Exam title is required");
+      }
+      
       const payload = {
-        title: e.title,
+        title: e.title.trim(),
         batch_id: e.batch_id || null,
         exam_date: e.exam_date || null,
         total_marks: e.total_marks ?? 100,
@@ -583,7 +624,7 @@ export function useUpsertExam() {
         exam_type: e.exam_type || "MCQ",
         status: e.status || "upcoming",
         duration_minutes: e.duration_minutes ?? null,
-        instructions: e.instructions || null,
+        instructions: e.instructions?.trim() || null,
       };
       if (e.id) {
         const { error } = await supabase.from("exams").update(payload).eq("id", e.id);
@@ -712,18 +753,26 @@ export function useUpsertAttendance() {
   return useMutation({
     mutationFn: async (a: {
       id?: string;
-      student_id: string;
-      batch_id: string;
+      student_id?: string;
+      batch_id?: string;
       date?: string;
       status?: string;
       notes?: string;
     }) => {
+      // Validate required fields
+      if (!a.student_id) {
+        throw new Error("Student is required");
+      }
+      if (!a.batch_id) {
+        throw new Error("Batch is required");
+      }
+      
       const payload = {
         student_id: a.student_id,
         batch_id: a.batch_id,
         date: a.date || new Date().toISOString().split("T")[0],
         status: (a.status as any) || "present",
-        notes: a.notes || null,
+        notes: a.notes?.trim() || null,
       };
       if (a.id) {
         const { error } = await supabase.from("attendance").update(payload).eq("id", a.id);
