@@ -796,6 +796,135 @@ export type Database = {
           },
         ]
       }
+      tasks: {
+        Row: {
+          id: string
+          title: string
+          description: string | null
+          assigned_to_user_id: string
+          assigned_by_user_id: string
+          related_student_id: string | null
+          related_batch_id: string | null
+          related_fee_id: string | null
+          priority: string
+          status: string
+          due_date: string
+          reminder_date: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          title: string
+          description?: string | null
+          assigned_to_user_id: string
+          assigned_by_user_id: string
+          related_student_id?: string | null
+          related_batch_id?: string | null
+          related_fee_id?: string | null
+          priority?: string
+          status?: string
+          due_date: string
+          reminder_date?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          title?: string
+          description?: string | null
+          assigned_to_user_id?: string
+          assigned_by_user_id?: string
+          related_student_id?: string | null
+          related_batch_id?: string | null
+          related_fee_id?: string | null
+          priority?: string
+          status?: string
+          due_date?: string
+          reminder_date?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tasks_assigned_to_user_id_fkey"
+            columns: ["assigned_to_user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tasks_assigned_by_user_id_fkey"
+            columns: ["assigned_by_user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tasks_related_student_id_fkey"
+            columns: ["related_student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tasks_related_batch_id_fkey"
+            columns: ["related_batch_id"]
+            isOneToOne: false
+            referencedRelation: "batches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tasks_related_fee_id_fkey"
+            columns: ["related_fee_id"]
+            isOneToOne: false
+            referencedRelation: "fees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      task_comments: {
+        Row: {
+          id: string
+          task_id: string
+          user_id: string
+          comment: string
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          task_id: string
+          user_id: string
+          comment: string
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          task_id?: string
+          user_id?: string
+          comment?: string
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "task_comments_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "tasks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "task_comments_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       students: {
         Row: {
           address: string | null
@@ -1082,6 +1211,72 @@ export type Database = {
           },
         ]
       }
+      leads: {
+        Row: {
+          id: string
+          student_name: string
+          parent_name: string | null
+          phone_number: string
+          email: string | null
+          course_interested: string | null
+          lead_source: Database["public"]["Enums"]["lead_source"]
+          assigned_counselor_id: string | null
+          stage: Database["public"]["Enums"]["lead_stage"]
+          follow_up_date: string | null
+          remarks: string | null
+          converted_student_id: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          student_name: string
+          parent_name?: string | null
+          phone_number: string
+          email?: string | null
+          course_interested?: string | null
+          lead_source: Database["public"]["Enums"]["lead_source"]
+          assigned_counselor_id?: string | null
+          stage?: Database["public"]["Enums"]["lead_stage"]
+          follow_up_date?: string | null
+          remarks?: string | null
+          converted_student_id?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          student_name?: string
+          parent_name?: string | null
+          phone_number?: string
+          email?: string | null
+          course_interested?: string | null
+          lead_source?: Database["public"]["Enums"]["lead_source"]
+          assigned_counselor_id?: string | null
+          stage?: Database["public"]["Enums"]["lead_stage"]
+          follow_up_date?: string | null
+          remarks?: string | null
+          converted_student_id?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "leads_assigned_counselor_id_fkey"
+            columns: ["assigned_counselor_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "leads_converted_student_id_fkey"
+            columns: ["converted_student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       v_student_summary: {
@@ -1152,6 +1347,36 @@ export type Database = {
         }
         Relationships: []
       }
+      task_summary: {
+        Row: {
+          id: string | null
+          title: string | null
+          description: string | null
+          priority: string | null
+          status: string | null
+          due_date: string | null
+          reminder_date: string | null
+          created_at: string | null
+          updated_at: string | null
+          related_student_id: string | null
+          related_batch_id: string | null
+          related_fee_id: string | null
+          assigned_to_user_id: string | null
+          assigned_by_user_id: string | null
+          assigned_to_name: string | null
+          assigned_to_role: string | null
+          assigned_by_name: string | null
+          student_name: string | null
+          batch_name: string | null
+          fee_amount: number | null
+          fee_due_date: string | null
+          fee_status: string | null
+          is_overdue: boolean | null
+          is_due_today: boolean | null
+          is_due_soon: boolean | null
+        }
+        Relationships: []
+      }
       v_exam_results: {
         Row: {
           id: string | null
@@ -1168,6 +1393,30 @@ export type Database = {
           student_name: string | null
           student_email: string | null
           percentage: number | null
+        }
+        Relationships: []
+      }
+      lead_summary: {
+        Row: {
+          id: string | null
+          student_name: string | null
+          parent_name: string | null
+          phone_number: string | null
+          email: string | null
+          course_interested: string | null
+          lead_source: Database["public"]["Enums"]["lead_source"] | null
+          assigned_counselor_id: string | null
+          stage: Database["public"]["Enums"]["lead_stage"] | null
+          follow_up_date: string | null
+          remarks: string | null
+          converted_student_id: string | null
+          created_at: string | null
+          updated_at: string | null
+          counselor_name: string | null
+          counselor_role: Database["public"]["Enums"]["user_role"] | null
+          converted_student_name: string | null
+          is_overdue_follow_up: boolean | null
+          is_follow_up_today: boolean | null
         }
         Relationships: []
       }
@@ -1223,6 +1472,44 @@ export type Database = {
         }
         Returns: string
       }
+      get_lead_stats: {
+        Args: {
+          p_start_date?: string
+          p_end_date?: string
+        }
+        Returns: Json
+      }
+      get_monthly_admissions_trend: {
+        Args: {
+          p_months?: number
+        }
+        Returns: Json
+      }
+      convert_lead_to_student: {
+        Args: {
+          p_lead_id: string
+          p_email?: string
+          p_date_of_birth?: string
+          p_gender?: string
+          p_address?: string
+        }
+        Returns: string
+      }
+      mark_lead_as_lost: {
+        Args: {
+          p_lead_id: string
+          p_reason?: string
+        }
+        Returns: boolean
+      }
+      get_todays_follow_ups: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
+      get_overdue_follow_ups: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
     }
     Enums: {
       attendance_status: "present" | "absent" | "late"
@@ -1231,11 +1518,15 @@ export type Database = {
       exam_status: "upcoming" | "ongoing" | "completed" | "cancelled"
       exam_type: "MCQ" | "written" | "practical" | "oral" | "online" | "mock"
       fee_status: "paid" | "pending" | "overdue"
+      lead_source: "walk-in" | "website" | "referral" | "social_media" | "other"
+      lead_stage: "inquiry" | "follow_up" | "demo" | "converted" | "lost"
       message_type: "general" | "class-update" | "schedule-change" | "exam-announcement" | "fee-reminder" | "emergency"
       notification_type: "system" | "fee" | "exam" | "attendance" | "message" | "enrollment"
       payment_method: "cash" | "bank_transfer" | "upi" | "cheque" | "card" | "other"
       recipient_type: "student" | "parent" | "teacher" | "batch" | "all-students" | "all-parents" | "all-teachers"
       student_status: "active" | "inactive" | "alumni"
+      task_priority: "low" | "medium" | "high"
+      task_status: "pending" | "in_progress" | "completed" | "cancelled"
       trigger_source: "automatic" | "manual"
       user_role: "super_admin" | "management_admin" | "academic_coordinator" | "teacher" | "finance_manager" | "support_staff"
     }

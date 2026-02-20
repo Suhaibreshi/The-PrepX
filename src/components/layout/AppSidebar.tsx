@@ -15,12 +15,15 @@ import {
   UserCog,
   X,
   BookOpen,
+  CheckSquare,
+  UserPlus,
 } from "lucide-react";
 import prepxLogo from "/prepx-logo.png";
 
 const navItems = [
   { label: "Dashboard", icon: LayoutDashboard, path: "/" },
   { label: "Students", icon: GraduationCap, path: "/students" },
+  { label: "Leads", icon: UserPlus, path: "/leads" },
   { label: "Parents", icon: Users, path: "/parents" },
   { label: "Teachers", icon: UserCog, path: "/teachers" },
   { label: "Courses", icon: BookOpen, path: "/courses" },
@@ -28,6 +31,7 @@ const navItems = [
   { label: "Attendance", icon: CalendarCheck, path: "/attendance" },
   { label: "Exams", icon: ClipboardList, path: "/exams" },
   { label: "Fees", icon: DollarSign, path: "/fees" },
+  { label: "Tasks", icon: CheckSquare, path: "/tasks" },
   { label: "Messages", icon: MessageSquare, path: "/messages" },
   { label: "Notifications", icon: Bell, path: "/notifications" },
   { label: "Reports", icon: BarChart3, path: "/reports" },

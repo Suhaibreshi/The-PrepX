@@ -479,3 +479,194 @@ export interface BirthdayRecipient {
   parent_phone: string | null;
   parent_name: string | null;
 }
+
+// ─── Task Management Types ────────────────────────────────────
+export type TaskPriority = "low" | "medium" | "high";
+export type TaskStatus = "pending" | "in_progress" | "completed" | "cancelled";
+
+export interface Task {
+  id: string;
+  title: string;
+  description: string | null;
+  assigned_to_user_id: string;
+  assigned_by_user_id: string;
+  related_student_id: string | null;
+  related_batch_id: string | null;
+  related_fee_id: string | null;
+  priority: TaskPriority;
+  status: TaskStatus;
+  due_date: string;
+  reminder_date: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface TaskComment {
+  id: string;
+  task_id: string;
+  user_id: string;
+  comment: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface TaskSummary {
+  id: string;
+  title: string;
+  description: string | null;
+  priority: TaskPriority;
+  status: TaskStatus;
+  due_date: string;
+  reminder_date: string | null;
+  created_at: string;
+  updated_at: string;
+  related_student_id: string | null;
+  related_batch_id: string | null;
+  related_fee_id: string | null;
+  assigned_to_user_id: string;
+  assigned_by_user_id: string;
+  assigned_to_name: string | null;
+  assigned_to_role: UserRole | null;
+  assigned_by_name: string | null;
+  student_name: string | null;
+  batch_name: string | null;
+  fee_amount: number | null;
+  fee_due_date: string | null;
+  fee_status: FeeStatus | null;
+  is_overdue: boolean;
+  is_due_today: boolean;
+  is_due_soon: boolean;
+}
+
+export interface TaskStats {
+  total_assigned: number;
+  pending: number;
+  in_progress: number;
+  completed: number;
+  overdue: number;
+  high_priority: number;
+  due_today: number;
+}
+
+export interface CreateTaskDTO {
+  title: string;
+  description?: string;
+  assigned_to_user_id: string;
+  related_student_id?: string | null;
+  related_batch_id?: string | null;
+  related_fee_id?: string | null;
+  priority?: TaskPriority;
+  status?: TaskStatus;
+  due_date: string;
+  reminder_date?: string | null;
+}
+
+export interface UpdateTaskDTO extends Partial<CreateTaskDTO> {
+  id: string;
+}
+
+export interface CreateTaskCommentDTO {
+  task_id: string;
+  comment: string;
+}
+
+// ─── Admission Funnel Types ────────────────────────────────────
+export type LeadSource = "walk-in" | "website" | "referral" | "social_media" | "other";
+export type LeadStage = "inquiry" | "follow_up" | "demo" | "converted" | "lost";
+
+export interface Lead {
+  id: string;
+  student_name: string;
+  parent_name: string | null;
+  phone_number: string;
+  email: string | null;
+  course_interested: string | null;
+  lead_source: LeadSource;
+  assigned_counselor_id: string | null;
+  stage: LeadStage;
+  follow_up_date: string | null;
+  remarks: string | null;
+  converted_student_id: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface LeadSummary {
+  id: string;
+  student_name: string;
+  parent_name: string | null;
+  phone_number: string;
+  email: string | null;
+  course_interested: string | null;
+  lead_source: LeadSource;
+  assigned_counselor_id: string | null;
+  stage: LeadStage;
+  follow_up_date: string | null;
+  remarks: string | null;
+  converted_student_id: string | null;
+  created_at: string;
+  updated_at: string;
+  counselor_name: string | null;
+  counselor_role: UserRole | null;
+  converted_student_name: string | null;
+  is_overdue_follow_up: boolean;
+  is_follow_up_today: boolean;
+}
+
+export interface LeadStats {
+  total_inquiries: number;
+  converted: number;
+  lost: number;
+  in_pipeline: number;
+  conversion_rate: number;
+  lost_rate: number;
+  by_source: { source: LeadSource; count: number }[] | null;
+  by_stage: { stage: LeadStage; count: number }[] | null;
+  follow_ups_today: number;
+  overdue_follow_ups: number;
+}
+
+export interface MonthlyAdmissionsTrend {
+  month: string;
+  month_sort: string;
+  inquiries: number;
+  converted: number;
+}
+
+export interface CreateLeadDTO {
+  student_name: string;
+  parent_name?: string | null;
+  phone_number: string;
+  email?: string | null;
+  course_interested?: string | null;
+  lead_source: LeadSource;
+  assigned_counselor_id?: string | null;
+  stage?: LeadStage;
+  follow_up_date?: string | null;
+  remarks?: string | null;
+}
+
+export interface UpdateLeadDTO extends Partial<CreateLeadDTO> {
+  id: string;
+}
+
+export interface ConvertLeadDTO {
+  lead_id: string;
+  email?: string | null;
+  date_of_birth?: string | null;
+  gender?: string | null;
+  address?: string | null;
+}
+
+export interface LeadFollowUp {
+  id: string;
+  student_name: string;
+  parent_name: string | null;
+  phone_number: string;
+  course_interested: string | null;
+  stage: LeadStage;
+  remarks: string | null;
+  counselor_name: string | null;
+  follow_up_date?: string | null;
+  days_overdue?: number;
+}

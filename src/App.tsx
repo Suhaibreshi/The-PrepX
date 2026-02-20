@@ -20,6 +20,8 @@ import Notifications from "./pages/Notifications";
 import Reports from "./pages/Reports";
 import SettingsPage from "./pages/Settings";
 import ProfilePage from "./pages/Profile";
+import Tasks from "./pages/Tasks";
+import Leads from "./pages/Leads";
 import Login from "./pages/Login";
 import NotFound from "./pages/NotFound";
 
@@ -60,6 +62,8 @@ const App = () => (
               <Route path="/reports" element={<Reports />} />
               <Route path="/settings" element={<SettingsPage />} />
               <Route path="/profile" element={<ProfilePage />} />
+              <Route path="/tasks" element={<Tasks />} />
+              <Route path="/leads" element={<Leads />} />
             </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>

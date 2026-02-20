@@ -10,5 +10,7 @@ export { NotificationSettingsService, type UpdateNotificationSettingsDTO } from 
 export { CommunicationLogService, type CommunicationLogFilters, type CommunicationLogStats, type CreateCommunicationLogDTO, type CommunicationLog } from "./CommunicationLogService";
 export { AutomatedNotificationService, type NotificationResult, type BatchNotificationResult } from "./AutomatedNotificationService";
 export { SMSService, type SMSConfig, type SMSProvider, type SMSResponse } from "./SMSProviderService";
+export { TaskService, type TaskFilters } from "./TaskService";
+export { LeadService, type LeadFilters, type LeadPagination, type LeadListResult } from "./LeadService";
 
 export { db } from "./api";

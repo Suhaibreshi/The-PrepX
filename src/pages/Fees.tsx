@@ -1,13 +1,137 @@
 import { useState, useMemo } from "react";
-import { DollarSign, Pencil, Trash2, CheckCircle, TrendingUp, AlertCircle } from "lucide-react";
+import { DollarSign, Pencil, Trash2, CheckCircle, TrendingUp, AlertCircle, CheckSquare } from "lucide-react";
 import DataPage from "@/components/shared/DataPage";
 import DataTable from "@/components/shared/DataTable";
 import EntityDialog, { FormField } from "@/components/shared/EntityDialog";
 import StatusBadge from "@/components/shared/StatusBadge";
 import StatCard from "@/components/dashboard/StatCard";
 import { Button } from "@/components/ui/button";
-import { useFees, useUpsertFee, useDeleteFee, useMarkFeesPaid, useStudents, useBatches } from "@/hooks/useCrudHooks";
+import { 
+  useFees, 
+  useUpsertFee, 
+  useDeleteFee, 
+  useMarkFeesPaid, 
+  useStudents, 
+  useBatches,
+  useCreateFollowUpTask,
+  useUserProfiles,
+} from "@/hooks/useCrudHooks";
 import { useDashboardMetrics } from "@/hooks/useDashboardMetrics";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+
+// Follow-up Task Dialog Component
+function FollowUpTaskDialog({
+  open,
+  onClose,
+  feeId,
+  studentId,
+  studentName,
+  feeAmount,
+  feeDueDate,
+}: {
+  open: boolean;
+  onClose: () => void;
+  feeId: string;
+  studentId: string;
+  studentName: string;
+  feeAmount: number;
+  feeDueDate: string;
+}) {
+  const [title, setTitle] = useState(`Fee Follow-up: ${studentName}`);
+  const [description, setDescription] = useState(
+    `Follow up on pending fee of ₹${feeAmount} due on ${new Date(feeDueDate).toLocaleDateString()}.`
+  );
+  const [assignedTo, setAssignedTo] = useState<string>("");
+  const createTask = useCreateFollowUpTask();
+
+  const { data: users = [] } = useUserProfiles();
+
+  const handleSubmit = () => {
+    createTask.mutate(
+      {
+        feeId,
+        studentId,
+        title,
+        description,
+        assignedToUserId: assignedTo || undefined,
+      },
+      {
+        onSuccess: () => {
+          onClose();
+        },
+      }
+    );
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onClose}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Create Follow-up Task</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-4 py-4">
+          <div>
+            <Label htmlFor="title">Task Title</Label>
+            <Input
+              id="title"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="Task title"
+            />
+          </div>
+          <div>
+            <Label htmlFor="description">Description</Label>
+            <Textarea
+              id="description"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="Task description"
+              rows={3}
+            />
+          </div>
+          <div>
+            <Label htmlFor="assignedTo">Assign To (optional)</Label>
+            <Select value={assignedTo} onValueChange={setAssignedTo}>
+              <SelectTrigger>
+                <SelectValue placeholder="Assign to yourself" />
+              </SelectTrigger>
+              <SelectContent>
+                {users.map((u: any) => (
+                  <SelectItem key={u.id} value={u.id}>
+                    {u.full_name || "Unknown"} ({u.role?.replace("_", " ") || ""})
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="flex justify-end gap-2 pt-4">
+            <Button variant="outline" onClick={onClose}>
+              Cancel
+            </Button>
+            <Button onClick={handleSubmit} disabled={!title || createTask.isPending}>
+              {createTask.isPending ? "Creating..." : "Create Task"}
+            </Button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
 
 export default function Fees() {
   const { data: fees = [], isLoading } = useFees();
@@ -19,6 +143,14 @@ export default function Fees() {
   const markPaid = useMarkFeesPaid();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<any>(null);
+  const [followUpDialog, setFollowUpDialog] = useState<{
+    open: boolean;
+    feeId: string;
+    studentId: string;
+    studentName: string;
+    feeAmount: number;
+    feeDueDate: string;
+  } | null>(null);
 
   const fields: FormField[] = useMemo(() => [
     {
@@ -91,13 +223,29 @@ export default function Fees() {
       render: (f: any) => (
         <div className="flex gap-1">
           {f.status !== "paid" && (
-            <Button
-              variant="ghost" size="icon"
-              title="Mark as Paid"
-              onClick={() => markPaid.mutate({ id: f.id })}
-            >
-              <CheckCircle className="h-4 w-4 text-success" />
-            </Button>
+            <>
+              <Button
+                variant="ghost" size="icon"
+                title="Mark as Paid"
+                onClick={() => markPaid.mutate({ id: f.id })}
+              >
+                <CheckCircle className="h-4 w-4 text-success" />
+              </Button>
+              <Button
+                variant="ghost" size="icon"
+                title="Create Follow-up Task"
+                onClick={() => setFollowUpDialog({
+                  open: true,
+                  feeId: f.id,
+                  studentId: f.student_id,
+                  studentName: f.students?.full_name || "Student",
+                  feeAmount: Number(f.amount),
+                  feeDueDate: f.due_date,
+                })}
+              >
+                <CheckSquare className="h-4 w-4 text-primary" />
+              </Button>
+            </>
           )}
           <Button variant="ghost" size="icon" onClick={() => { setEditing(f); setDialogOpen(true); }}>
             <Pencil className="h-4 w-4" />
@@ -160,6 +308,19 @@ export default function Fees() {
           upsert.mutate(data as any, { onSuccess: () => setDialogOpen(false) })
         }
       />
+
+      {/* Follow-up Task Dialog */}
+      {followUpDialog?.open && (
+        <FollowUpTaskDialog
+          open={followUpDialog.open}
+          onClose={() => setFollowUpDialog(null)}
+          feeId={followUpDialog.feeId}
+          studentId={followUpDialog.studentId}
+          studentName={followUpDialog.studentName}
+          feeAmount={followUpDialog.feeAmount}
+          feeDueDate={followUpDialog.feeDueDate}
+        />
+      )}
     </DataPage>
   );
 }
