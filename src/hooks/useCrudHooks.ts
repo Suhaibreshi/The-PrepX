@@ -1394,3 +1394,187 @@ export function useDeleteEvent() {
     onError: (e: any) => toast.error(getSafeErrorMessage(e)),
   });
 }
+
+// ─────────────────────────────────────────────────────────────
+// NOTIFICATION SETTINGS
+// ─────────────────────────────────────────────────────────────
+export function useNotificationSettings() {
+  return useQuery({
+    queryKey: ["notification-settings"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("notification_settings")
+        .select("*")
+        .limit(1)
+        .single();
+      if (error && error.code !== "PGRST116") throw error;
+      return data;
+    },
+  });
+}
+
+export function useUpdateNotificationSettings() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (settings: {
+      enable_automatic_mode?: boolean;
+      fee_reminder_days_before?: number;
+      exam_reminder_days_before?: number;
+      enable_absent_alert?: boolean;
+      enable_overdue_alert?: boolean;
+      enable_birthday_wish?: boolean;
+      enable_fee_reminder?: boolean;
+      enable_exam_reminder?: boolean;
+    }) => {
+      // Get existing settings first
+      const { data: existing } = await supabase
+        .from("notification_settings")
+        .select("id")
+        .limit(1)
+        .single();
+
+      if (existing) {
+        const { error } = await supabase
+          .from("notification_settings")
+          .update({
+            ...settings,
+            updated_at: new Date().toISOString(),
+          })
+          .eq("id", existing.id);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from("notification_settings")
+          .insert({
+            ...settings,
+            enable_automatic_mode: settings.enable_automatic_mode ?? false,
+            fee_reminder_days_before: settings.fee_reminder_days_before ?? 3,
+            exam_reminder_days_before: settings.exam_reminder_days_before ?? 1,
+            enable_absent_alert: settings.enable_absent_alert ?? true,
+            enable_overdue_alert: settings.enable_overdue_alert ?? true,
+            enable_birthday_wish: settings.enable_birthday_wish ?? false,
+            enable_fee_reminder: settings.enable_fee_reminder ?? true,
+            enable_exam_reminder: settings.enable_exam_reminder ?? true,
+          });
+        if (error) throw error;
+      }
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["notification-settings"] });
+      toast.success("Notification settings updated");
+    },
+    onError: (e: any) => toast.error(getSafeErrorMessage(e)),
+  });
+}
+
+// ─────────────────────────────────────────────────────────────
+// COMMUNICATION LOGS
+// ─────────────────────────────────────────────────────────────
+export function useCommunicationLogs(filters?: {
+  student_id?: string;
+  parent_id?: string;
+  message_type?: "fee" | "overdue" | "exam" | "absent" | "birthday";
+  delivery_status?: "pending" | "sent" | "failed";
+  date_from?: string;
+  date_to?: string;
+}) {
+  return useQuery({
+    queryKey: ["communication-logs", filters],
+    queryFn: async () => {
+      let query = supabase
+        .from("communication_logs")
+        .select("*")
+        .order("created_at", { ascending: false });
+
+      if (filters?.student_id) {
+        query = query.eq("student_id", filters.student_id);
+      }
+      if (filters?.parent_id) {
+        query = query.eq("parent_id", filters.parent_id);
+      }
+      if (filters?.message_type) {
+        query = query.eq("message_type", filters.message_type);
+      }
+      if (filters?.delivery_status) {
+        query = query.eq("delivery_status", filters.delivery_status);
+      }
+      if (filters?.date_from) {
+        query = query.gte("created_at", filters.date_from);
+      }
+      if (filters?.date_to) {
+        query = query.lte("created_at", filters.date_to);
+      }
+
+      const { data, error } = await query;
+      if (error) throw error;
+      return data;
+    },
+  });
+}
+
+export function useCommunicationLogStats(dateFrom?: string, dateTo?: string) {
+  return useQuery({
+    queryKey: ["communication-log-stats", dateFrom, dateTo],
+    queryFn: async () => {
+      let query = supabase
+        .from("communication_logs")
+        .select("delivery_status, message_type");
+
+      if (dateFrom) {
+        query = query.gte("created_at", dateFrom);
+      }
+      if (dateTo) {
+        query = query.lte("created_at", dateTo);
+      }
+
+      const { data, error } = await query;
+      if (error) throw error;
+
+      const stats = {
+        total: data?.length || 0,
+        sent: 0,
+        failed: 0,
+        pending: 0,
+        by_type: {
+          fee: 0,
+          overdue: 0,
+          exam: 0,
+          absent: 0,
+          birthday: 0,
+        } as Record<string, number>,
+      };
+
+      data?.forEach((log) => {
+        if (log.delivery_status === "sent") stats.sent++;
+        else if (log.delivery_status === "failed") stats.failed++;
+        else if (log.delivery_status === "pending") stats.pending++;
+
+        if (log.message_type && stats.by_type[log.message_type] !== undefined) {
+          stats.by_type[log.message_type]++;
+        }
+      });
+
+      return stats;
+    },
+  });
+}
+
+// ─────────────────────────────────────────────────────────────
+// RUN AUTOMATED NOTIFICATIONS (Manual Trigger)
+// ─────────────────────────────────────────────────────────────
+export function useRunAutomatedNotifications() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async () => {
+      const { data, error } = await supabase.functions.invoke("run-automated-notifications");
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["communication-logs"] });
+      qc.invalidateQueries({ queryKey: ["communication-log-stats"] });
+      toast.success("Automated notifications processed");
+    },
+    onError: (e: any) => toast.error(getSafeErrorMessage(e)),
+  });
+}

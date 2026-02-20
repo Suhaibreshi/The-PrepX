@@ -977,6 +977,111 @@ export type Database = {
           },
         ]
       }
+      notification_settings: {
+        Row: {
+          id: string
+          enable_automatic_mode: boolean
+          fee_reminder_days_before: number
+          exam_reminder_days_before: number
+          enable_absent_alert: boolean
+          enable_overdue_alert: boolean
+          enable_birthday_wish: boolean
+          enable_fee_reminder: boolean
+          enable_exam_reminder: boolean
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          enable_automatic_mode?: boolean
+          fee_reminder_days_before?: number
+          exam_reminder_days_before?: number
+          enable_absent_alert?: boolean
+          enable_overdue_alert?: boolean
+          enable_birthday_wish?: boolean
+          enable_fee_reminder?: boolean
+          enable_exam_reminder?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          enable_automatic_mode?: boolean
+          fee_reminder_days_before?: number
+          exam_reminder_days_before?: number
+          enable_absent_alert?: boolean
+          enable_overdue_alert?: boolean
+          enable_birthday_wish?: boolean
+          enable_fee_reminder?: boolean
+          enable_exam_reminder?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      communication_logs: {
+        Row: {
+          id: string
+          student_id: string | null
+          parent_id: string | null
+          message_type: Database["public"]["Enums"]["communication_message_type"]
+          message_content: string
+          delivery_status: Database["public"]["Enums"]["delivery_status"]
+          triggered_by: Database["public"]["Enums"]["trigger_source"]
+          error_message: string | null
+          provider_response: Json | null
+          related_entity_id: string | null
+          related_entity_type: string | null
+          sent_at: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          student_id?: string | null
+          parent_id?: string | null
+          message_type: Database["public"]["Enums"]["communication_message_type"]
+          message_content: string
+          delivery_status?: Database["public"]["Enums"]["delivery_status"]
+          triggered_by?: Database["public"]["Enums"]["trigger_source"]
+          error_message?: string | null
+          provider_response?: Json | null
+          related_entity_id?: string | null
+          related_entity_type?: string | null
+          sent_at?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          student_id?: string | null
+          parent_id?: string | null
+          message_type?: Database["public"]["Enums"]["communication_message_type"]
+          message_content?: string
+          delivery_status?: Database["public"]["Enums"]["delivery_status"]
+          triggered_by?: Database["public"]["Enums"]["trigger_source"]
+          error_message?: string | null
+          provider_response?: Json | null
+          related_entity_id?: string | null
+          related_entity_type?: string | null
+          sent_at?: string | null
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "communication_logs_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "communication_logs_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "parents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       v_student_summary: {
@@ -1089,9 +1194,40 @@ export type Database = {
         Returns: Json
       }
       mark_overdue_fees: { Args: Record<PropertyKey, never>; Returns: void }
+      get_notification_settings: { Args: Record<PropertyKey, never>; Returns: Json }
+      get_students_with_upcoming_fees: { Args: { p_days_before?: number }; Returns: Json }
+      get_students_with_overdue_fees: { Args: Record<PropertyKey, never>; Returns: Json }
+      get_students_with_upcoming_exams: { Args: { p_days_before?: number }; Returns: Json }
+      get_absent_students_today: { Args: Record<PropertyKey, never>; Returns: Json }
+      get_students_with_birthdays_today: { Args: Record<PropertyKey, never>; Returns: Json }
+      was_notification_sent_today: { 
+        Args: { 
+          p_student_id: string
+          p_message_type: string
+          p_related_entity_id?: string
+        }
+        Returns: boolean 
+      }
+      log_communication: {
+        Args: {
+          p_student_id?: string
+          p_parent_id?: string
+          p_message_type: string
+          p_message_content: string
+          p_delivery_status?: string
+          p_triggered_by?: string
+          p_error_message?: string
+          p_provider_response?: Json
+          p_related_entity_id?: string
+          p_related_entity_type?: string
+        }
+        Returns: string
+      }
     }
     Enums: {
       attendance_status: "present" | "absent" | "late"
+      communication_message_type: "fee" | "overdue" | "exam" | "absent" | "birthday"
+      delivery_status: "pending" | "sent" | "failed"
       exam_status: "upcoming" | "ongoing" | "completed" | "cancelled"
       exam_type: "MCQ" | "written" | "practical" | "oral" | "online" | "mock"
       fee_status: "paid" | "pending" | "overdue"
@@ -1100,6 +1236,7 @@ export type Database = {
       payment_method: "cash" | "bank_transfer" | "upi" | "cheque" | "card" | "other"
       recipient_type: "student" | "parent" | "teacher" | "batch" | "all-students" | "all-parents" | "all-teachers"
       student_status: "active" | "inactive" | "alumni"
+      trigger_source: "automatic" | "manual"
       user_role: "super_admin" | "management_admin" | "academic_coordinator" | "teacher" | "finance_manager" | "support_staff"
     }
     CompositeTypes: {

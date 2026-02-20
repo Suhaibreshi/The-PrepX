@@ -10,12 +10,18 @@ import {
   Pencil,
   Trash2,
   Save,
+  Bell,
+  Play,
+  BarChart3,
 } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
+import { Badge } from "@/components/ui/badge";
+import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
 import EntityDialog, { FormField } from "@/components/shared/EntityDialog";
 import DataTable from "@/components/shared/DataTable";
 import {
@@ -27,7 +33,12 @@ import {
   useUpsertFeeTemplate,
   useDeleteFeeTemplate,
   useCourses,
+  useNotificationSettings,
+  useUpdateNotificationSettings,
+  useCommunicationLogs,
+  useCommunicationLogStats,
 } from "@/hooks/useCrudHooks";
+import { AutomatedNotificationService } from "@/services";
 
 // ─── Academic Year Tab ────────────────────────────────────────
 function AcademicYearTab() {
@@ -281,6 +292,281 @@ function BrandingTab() {
   );
 }
 
+// ─── Notification Engine Tab ───────────────────────────────────
+function NotificationEngineTab() {
+  const { data: settings, isLoading: settingsLoading } = useNotificationSettings();
+  const { data: stats } = useCommunicationLogStats();
+  const { data: logs } = useCommunicationLogs();
+  const updateSettings = useUpdateNotificationSettings();
+  const [isRunning, setIsRunning] = useState(false);
+
+  if (settingsLoading) {
+    return <p className="text-sm text-muted-foreground">Loading…</p>;
+  }
+
+  const handleToggleMode = (enabled: boolean) => {
+    updateSettings.mutate({ enable_automatic_mode: enabled });
+  };
+
+  const handleToggle = (key: string, value: boolean) => {
+    updateSettings.mutate({ [key]: value });
+  };
+
+  const handleDaysChange = (key: string, value: number) => {
+    if (value >= 0 && value <= 30) {
+      updateSettings.mutate({ [key]: value });
+    }
+  };
+
+  const handleRunManually = async () => {
+    setIsRunning(true);
+    try {
+      const result = await AutomatedNotificationService.runAllNotifications();
+      console.log("Notification run result:", result);
+    } catch (error) {
+      console.error("Failed to run notifications:", error);
+    } finally {
+      setIsRunning(false);
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Mode Toggle */}
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="font-heading text-base flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Bell className="h-5 w-5 text-primary" />
+              Notification Mode
+            </div>
+            <div className="flex items-center gap-3">
+              <span className="text-sm font-normal text-muted-foreground">
+                {settings?.enable_automatic_mode ? "Automatic" : "Manual"}
+              </span>
+              <Switch
+                checked={settings?.enable_automatic_mode ?? false}
+                onCheckedChange={handleToggleMode}
+                disabled={updateSettings.isPending}
+              />
+            </div>
+          </CardTitle>
+          <CardDescription>
+            In automatic mode, notifications are sent automatically based on triggers.
+            In manual mode, you need to trigger notifications manually.
+          </CardDescription>
+        </CardHeader>
+      </Card>
+
+      {/* Quick Stats */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+        <Card>
+          <CardContent className="pt-4">
+            <div className="text-2xl font-bold text-green-600">{stats?.sent ?? 0}</div>
+            <div className="text-xs text-muted-foreground">Sent</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="pt-4">
+            <div className="text-2xl font-bold text-red-600">{stats?.failed ?? 0}</div>
+            <div className="text-xs text-muted-foreground">Failed</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="pt-4">
+            <div className="text-2xl font-bold text-yellow-600">{stats?.pending ?? 0}</div>
+            <div className="text-xs text-muted-foreground">Pending</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="pt-4">
+            <div className="text-2xl font-bold">{stats?.total ?? 0}</div>
+            <div className="text-xs text-muted-foreground">Total</div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Notification Types */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="font-heading text-base">Notification Types</CardTitle>
+          <CardDescription>Enable or disable specific notification types</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {/* Fee Reminder */}
+          <div className="flex items-center justify-between">
+            <div className="space-y-0.5">
+              <Label className="text-sm font-medium">Fee Reminder</Label>
+              <p className="text-xs text-muted-foreground">
+                Send reminder X days before fee due date
+              </p>
+            </div>
+            <div className="flex items-center gap-3">
+              <Input
+                type="number"
+                className="w-16"
+                value={settings?.fee_reminder_days_before ?? 3}
+                onChange={(e) => handleDaysChange("fee_reminder_days_before", parseInt(e.target.value) || 0)}
+                disabled={!settings?.enable_fee_reminder}
+              />
+              <span className="text-xs text-muted-foreground">days</span>
+              <Switch
+                checked={settings?.enable_fee_reminder ?? true}
+                onCheckedChange={(v) => handleToggle("enable_fee_reminder", v)}
+              />
+            </div>
+          </div>
+          <Separator />
+
+          {/* Overdue Alert */}
+          <div className="flex items-center justify-between">
+            <div className="space-y-0.5">
+              <Label className="text-sm font-medium">Overdue Alert</Label>
+              <p className="text-xs text-muted-foreground">
+                Send alert when fee payment is overdue
+              </p>
+            </div>
+            <Switch
+              checked={settings?.enable_overdue_alert ?? true}
+              onCheckedChange={(v) => handleToggle("enable_overdue_alert", v)}
+            />
+          </div>
+          <Separator />
+
+          {/* Exam Reminder */}
+          <div className="flex items-center justify-between">
+            <div className="space-y-0.5">
+              <Label className="text-sm font-medium">Exam Reminder</Label>
+              <p className="text-xs text-muted-foreground">
+                Send reminder X days before exam
+              </p>
+            </div>
+            <div className="flex items-center gap-3">
+              <Input
+                type="number"
+                className="w-16"
+                value={settings?.exam_reminder_days_before ?? 1}
+                onChange={(e) => handleDaysChange("exam_reminder_days_before", parseInt(e.target.value) || 0)}
+                disabled={!settings?.enable_exam_reminder}
+              />
+              <span className="text-xs text-muted-foreground">days</span>
+              <Switch
+                checked={settings?.enable_exam_reminder ?? true}
+                onCheckedChange={(v) => handleToggle("enable_exam_reminder", v)}
+              />
+            </div>
+          </div>
+          <Separator />
+
+          {/* Absent Alert */}
+          <div className="flex items-center justify-between">
+            <div className="space-y-0.5">
+              <Label className="text-sm font-medium">Absent Alert</Label>
+              <p className="text-xs text-muted-foreground">
+                Send alert to parent when student is marked absent
+              </p>
+            </div>
+            <Switch
+              checked={settings?.enable_absent_alert ?? true}
+              onCheckedChange={(v) => handleToggle("enable_absent_alert", v)}
+            />
+          </div>
+          <Separator />
+
+          {/* Birthday Wish */}
+          <div className="flex items-center justify-between">
+            <div className="space-y-0.5">
+              <Label className="text-sm font-medium">Birthday Wish</Label>
+              <p className="text-xs text-muted-foreground">
+                Send birthday wishes to students
+              </p>
+            </div>
+            <Switch
+              checked={settings?.enable_birthday_wish ?? false}
+              onCheckedChange={(v) => handleToggle("enable_birthday_wish", v)}
+            />
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Manual Trigger */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="font-heading text-base">Manual Trigger</CardTitle>
+          <CardDescription>
+            Manually run the notification engine to process all pending notifications
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Button
+            onClick={handleRunManually}
+            disabled={isRunning || !settings?.enable_automatic_mode}
+            className="gap-2"
+          >
+            {isRunning ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Play className="h-4 w-4" />
+            )}
+            Run Notification Engine
+          </Button>
+          {!settings?.enable_automatic_mode && (
+            <p className="text-xs text-muted-foreground mt-2">
+              Enable automatic mode to run the notification engine
+            </p>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Recent Logs */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="font-heading text-base flex items-center gap-2">
+            <BarChart3 className="h-5 w-5 text-primary" />
+            Recent Communication Logs
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {(logs as any[])?.length === 0 ? (
+            <p className="text-sm text-muted-foreground text-center py-4">
+              No communication logs yet
+            </p>
+          ) : (
+            <div className="space-y-2 max-h-64 overflow-y-auto">
+              {(logs as any[])?.slice(0, 10).map((log) => (
+                <div
+                  key={log.id}
+                  className="flex items-center justify-between p-2 rounded-lg bg-muted/50"
+                >
+                  <div className="flex items-center gap-2">
+                    <Badge
+                      variant={
+                        log.delivery_status === "sent"
+                          ? "default"
+                          : log.delivery_status === "failed"
+                          ? "destructive"
+                          : "secondary"
+                      }
+                    >
+                      {log.message_type}
+                    </Badge>
+                    <span className="text-xs text-muted-foreground truncate max-w-[200px]">
+                      {log.message_content?.substring(0, 50)}...
+                    </span>
+                  </div>
+                  <div className="text-xs text-muted-foreground">
+                    {new Date(log.created_at).toLocaleString()}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
 // ─── Main Settings Page ───────────────────────────────────────
 export default function SettingsPage() {
   return (
@@ -301,6 +587,7 @@ export default function SettingsPage() {
         <TabsList className="overflow-x-auto flex-nowrap w-full justify-start">
           <TabsTrigger value="academic">Academic Year</TabsTrigger>
           <TabsTrigger value="fees">Fee Templates</TabsTrigger>
+          <TabsTrigger value="notifications">Notification Engine</TabsTrigger>
           <TabsTrigger value="integrations">Integrations</TabsTrigger>
           <TabsTrigger value="branding">Branding</TabsTrigger>
         </TabsList>
@@ -329,6 +616,20 @@ export default function SettingsPage() {
             </CardHeader>
             <CardContent>
               <FeeTemplatesTab />
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="notifications">
+          <Card>
+            <CardHeader>
+              <CardTitle className="font-heading text-base flex items-center gap-2">
+                <Bell className="h-5 w-5 text-primary" />
+                Notification Engine
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <NotificationEngineTab />
             </CardContent>
           </Card>
         </TabsContent>

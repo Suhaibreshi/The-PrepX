@@ -10,6 +10,11 @@ export type RecipientType = "student" | "parent" | "teacher" | "batch" | "all-st
 export type NotificationType = "system" | "fee" | "exam" | "attendance" | "message" | "enrollment";
 export type UserRole = "super_admin" | "management_admin" | "academic_coordinator" | "teacher" | "finance_manager" | "support_staff";
 
+// Notification Engine Enums
+export type CommunicationMessageType = "fee" | "overdue" | "exam" | "absent" | "birthday";
+export type DeliveryStatus = "pending" | "sent" | "failed";
+export type TriggerSource = "automatic" | "manual";
+
 // ─── Dashboard ───────────────────────────────────────────────
 export interface DashboardMetrics {
   total_students: number;
@@ -360,4 +365,117 @@ export interface ExamResultView {
   student_name: string;
   student_email: string | null;
   percentage: number;
+}
+
+// ─── Notification Engine Types ─────────────────────────────────
+export interface NotificationSettings {
+  id: string;
+  enable_automatic_mode: boolean;
+  fee_reminder_days_before: number;
+  exam_reminder_days_before: number;
+  enable_absent_alert: boolean;
+  enable_overdue_alert: boolean;
+  enable_birthday_wish: boolean;
+  enable_fee_reminder: boolean;
+  enable_exam_reminder: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CommunicationLog {
+  id: string;
+  student_id: string | null;
+  parent_id: string | null;
+  message_type: CommunicationMessageType;
+  message_content: string;
+  delivery_status: DeliveryStatus;
+  triggered_by: TriggerSource;
+  error_message: string | null;
+  provider_response: unknown;
+  related_entity_id: string | null;
+  related_entity_type: string | null;
+  sent_at: string | null;
+  created_at: string;
+}
+
+// ─── Notification Engine DTOs ──────────────────────────────────
+export interface UpdateNotificationSettingsDTO {
+  enable_automatic_mode?: boolean;
+  fee_reminder_days_before?: number;
+  exam_reminder_days_before?: number;
+  enable_absent_alert?: boolean;
+  enable_overdue_alert?: boolean;
+  enable_birthday_wish?: boolean;
+  enable_fee_reminder?: boolean;
+  enable_exam_reminder?: boolean;
+}
+
+export interface CreateCommunicationLogDTO {
+  student_id?: string | null;
+  parent_id?: string | null;
+  message_type: CommunicationMessageType;
+  message_content: string;
+  delivery_status?: DeliveryStatus;
+  triggered_by?: TriggerSource;
+  error_message?: string | null;
+  provider_response?: unknown;
+  related_entity_id?: string | null;
+  related_entity_type?: string | null;
+  sent_at?: string | null;
+}
+
+// ─── Notification Recipient Types ──────────────────────────────
+export interface FeeReminderRecipient {
+  fee_id: string;
+  student_id: string;
+  student_name: string;
+  student_phone: string | null;
+  parent_phone: string | null;
+  parent_name: string | null;
+  amount: number;
+  due_date: string;
+  description: string | null;
+}
+
+export interface OverdueReminderRecipient {
+  fee_id: string;
+  student_id: string;
+  student_name: string;
+  student_phone: string | null;
+  parent_phone: string | null;
+  parent_name: string | null;
+  amount: number;
+  due_date: string;
+  days_overdue: number;
+}
+
+export interface ExamReminderRecipient {
+  exam_id: string;
+  student_id: string;
+  student_name: string;
+  student_phone: string | null;
+  parent_phone: string | null;
+  parent_name: string | null;
+  exam_title: string;
+  exam_date: string | null;
+  batch_name: string | null;
+  total_marks: number;
+}
+
+export interface AbsentAlertRecipient {
+  attendance_id: string;
+  student_id: string;
+  student_name: string;
+  parent_phone: string | null;
+  parent_name: string | null;
+  batch_name: string | null;
+  attendance_date: string;
+}
+
+export interface BirthdayRecipient {
+  student_id: string;
+  student_name: string;
+  student_phone: string | null;
+  parent_phone: string | null;
+  parent_name: string | null;
 }
