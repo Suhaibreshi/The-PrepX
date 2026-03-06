@@ -5,15 +5,6 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-const SAFE_ERROR_MESSAGES = [
-  'An error occurred while saving',
-  'An error occurred while deleting',
-  'An error occurred while fetching data',
-  'Please check your permissions',
-  'Session expired. Please log in again',
-  'Network error. Please try again',
-];
-
 export function getSafeErrorMessage(error: unknown): string {
   if (!error) return 'An unknown error occurred';
   
@@ -22,6 +13,11 @@ export function getSafeErrorMessage(error: unknown): string {
   
   if (!errorMessage || errorMessage === 'null' || errorMessage === 'undefined') {
     return 'An unknown error occurred';
+  }
+  
+  // Return validation errors directly (these are user-friendly)
+  if (errorMessage.includes('is required') || errorMessage.includes('must be')) {
+    return errorMessage;
   }
   
   if (errorMessage.includes('row-level security') || errorMessage.includes('RLS')) {
@@ -44,9 +40,10 @@ export function getSafeErrorMessage(error: unknown): string {
     return 'Invalid data provided. Please check your input';
   }
   
-  if (errorMessage.length > 100) {
-    return 'An error occurred. Please try again';
+  // For other errors, return the message if it's short enough
+  if (errorMessage.length <= 100) {
+    return errorMessage;
   }
   
-  return SAFE_ERROR_MESSAGES[Math.floor(Math.random() * SAFE_ERROR_MESSAGES.length)];
+  return 'An error occurred. Please try again';
 }

@@ -1,12 +1,14 @@
-import { useState } from "react";
-import { MessageSquare, Send, Trash2, Eye } from "lucide-react";
+import { useState, useMemo } from "react";
+import { MessageSquare, Send, Trash2, Eye, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { useMessages, useSendMessage, useMarkMessageRead, useDeleteMessage } from "@/hooks/useCrudHooks";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { useMessages, useSendMessage, useMarkMessageRead, useDeleteMessage, useStudents, useTeachers, useParents, useBatches } from "@/hooks/useCrudHooks";
 import { useAuth } from "@/hooks/useAuth";
 
 const MESSAGE_TYPES = [
@@ -34,31 +36,88 @@ export default function Messages() {
   const send = useSendMessage();
   const markRead = useMarkMessageRead();
   const deleteMsg = useDeleteMessage();
+  
+  // Fetch data for individual recipient selection
+  const { data: students = [] } = useStudents();
+  const { data: teachers = [] } = useTeachers();
+  const { data: parents = [] } = useParents();
+  const { data: batches = [] } = useBatches();
 
   const [form, setForm] = useState({
     recipient_type: "",
+    recipient_id: "",
     message_type: "general",
     subject: "",
     body: "",
     scheduled_at: "",
   });
+  
+  const [recipientSearch, setRecipientSearch] = useState("");
+  const [recipientPopoverOpen, setRecipientPopoverOpen] = useState(false);
+
+  // Determine if individual recipient selection is needed
+  const needsIndividualRecipient = ["student", "parent", "teacher", "batch"].includes(form.recipient_type);
+  
+  // Get the appropriate recipient list based on type
+  const recipientOptions = useMemo(() => {
+    const search = recipientSearch.toLowerCase();
+    switch (form.recipient_type) {
+      case "student":
+        return (students as any[])
+          .filter(s => s.full_name?.toLowerCase().includes(search) || s.email?.toLowerCase().includes(search))
+          .map(s => ({ id: s.id, label: s.full_name, sublabel: s.email || s.phone }));
+      case "parent":
+        return (parents as any[])
+          .filter(p => p.full_name?.toLowerCase().includes(search) || p.email?.toLowerCase().includes(search))
+          .map(p => ({ id: p.id, label: p.full_name, sublabel: p.email || p.phone }));
+      case "teacher":
+        return (teachers as any[])
+          .filter(t => t.full_name?.toLowerCase().includes(search) || t.email?.toLowerCase().includes(search))
+          .map(t => ({ id: t.id, label: t.full_name, sublabel: t.email || t.phone || t.subject }));
+      case "batch":
+        return (batches as any[])
+          .filter(b => b.name?.toLowerCase().includes(search))
+          .map(b => ({ id: b.id, label: b.name, sublabel: b.teachers?.full_name || b.schedule }));
+      default:
+        return [];
+    }
+  }, [form.recipient_type, recipientSearch, students, parents, teachers, batches]);
+  
+  // Get selected recipient display name
+  const selectedRecipientName = useMemo(() => {
+    if (!form.recipient_id) return null;
+    const option = recipientOptions.find(o => o.id === form.recipient_id);
+    return option || null;
+  }, [form.recipient_id, recipientOptions]);
 
   const handleSend = (schedule = false) => {
     if (!form.recipient_type || !form.subject || !form.body) return;
+    // For individual recipients, require recipient_id
+    if (needsIndividualRecipient && !form.recipient_id) return;
+    
     send.mutate(
       {
         sender_id: user?.id,
         recipient_type: form.recipient_type,
+        recipient_id: needsIndividualRecipient ? form.recipient_id : undefined,
         message_type: form.message_type,
         subject: form.subject,
         body: form.body,
         scheduled_at: schedule && form.scheduled_at ? form.scheduled_at : undefined,
       },
       {
-        onSuccess: () =>
-          setForm({ recipient_type: "", message_type: "general", subject: "", body: "", scheduled_at: "" }),
+        onSuccess: () => {
+          setForm({ recipient_type: "", recipient_id: "", message_type: "general", subject: "", body: "", scheduled_at: "" });
+          setRecipientSearch("");
+        },
       }
     );
+  };
+  
+  // Clear recipient_id when recipient_type changes
+  const handleRecipientTypeChange = (value: string) => {
+    setForm(p => ({ ...p, recipient_type: value, recipient_id: "" }));
+    setRecipientSearch("");
   };
 
   const unreadCount = (messages as any[]).filter((m) => !m.read).length;
@@ -89,7 +148,7 @@ export default function Messages() {
                 <label className="text-sm font-medium mb-1.5 block">Recipient Type</label>
                 <Select
                   value={form.recipient_type}
-                  onValueChange={(v) => setForm((p) => ({ ...p, recipient_type: v }))}
+                  onValueChange={handleRecipientTypeChange}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Select recipient type" />
@@ -118,6 +177,73 @@ export default function Messages() {
                 </Select>
               </div>
             </div>
+            
+            {/* Individual Recipient Selection */}
+            {needsIndividualRecipient && (
+              <div>
+                <label className="text-sm font-medium mb-1.5 block">
+                  Select {form.recipient_type === "student" ? "Student" : form.recipient_type === "parent" ? "Parent" : form.recipient_type === "teacher" ? "Teacher" : "Batch"} <span className="text-destructive">*</span>
+                </label>
+                <Popover open={recipientPopoverOpen} onOpenChange={setRecipientPopoverOpen}>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      role="combobox"
+                      aria-expanded={recipientPopoverOpen}
+                      className="w-full justify-between font-normal"
+                    >
+                      {selectedRecipientName ? (
+                        <span className="truncate">
+                          {selectedRecipientName.label}
+                          {selectedRecipientName.sublabel && (
+                            <span className="text-muted-foreground ml-2 text-xs">({selectedRecipientName.sublabel})</span>
+                          )}
+                        </span>
+                      ) : (
+                        <span className="text-muted-foreground">
+                          Search and select a {form.recipient_type === "student" ? "student" : form.recipient_type === "parent" ? "parent" : form.recipient_type === "teacher" ? "teacher" : "batch"}...
+                        </span>
+                      )}
+                      <Search className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
+                    <Command shouldFilter={false}>
+                      <CommandInput 
+                        placeholder="Type to search..." 
+                        value={recipientSearch}
+                        onValueChange={setRecipientSearch}
+                      />
+                      <CommandList>
+                        <CommandEmpty>
+                          {recipientSearch ? "No results found." : "Start typing to search..."}
+                        </CommandEmpty>
+                        <CommandGroup className="max-h-64 overflow-auto">
+                          {recipientOptions.map((option) => (
+                            <CommandItem
+                              key={option.id}
+                              value={option.id}
+                              onSelect={() => {
+                                setForm(p => ({ ...p, recipient_id: option.id }));
+                                setRecipientPopoverOpen(false);
+                              }}
+                            >
+                              <div className="flex flex-col">
+                                <span>{option.label}</span>
+                                {option.sublabel && (
+                                  <span className="text-xs text-muted-foreground">{option.sublabel}</span>
+                                )}
+                              </div>
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      </CommandList>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
+              </div>
+            )}
+            
             <div>
               <label className="text-sm font-medium mb-1.5 block">Subject</label>
               <Input
@@ -146,14 +272,14 @@ export default function Messages() {
             <div className="flex justify-end gap-2">
               <Button
                 variant="outline"
-                disabled={send.isPending || !form.scheduled_at}
+                disabled={send.isPending || !form.scheduled_at || (needsIndividualRecipient && !form.recipient_id)}
                 onClick={() => handleSend(true)}
               >
                 Schedule
               </Button>
               <Button
                 className="gap-2"
-                disabled={send.isPending || !form.recipient_type || !form.subject || !form.body}
+                disabled={send.isPending || !form.recipient_type || !form.subject || !form.body || (needsIndividualRecipient && !form.recipient_id)}
                 onClick={() => handleSend(false)}
               >
                 <Send className="h-4 w-4" />

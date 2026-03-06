@@ -14,18 +14,24 @@ import {
   ChevronLeft,
   UserCog,
   X,
+  BookOpen,
+  CheckSquare,
+  UserPlus,
 } from "lucide-react";
 import prepxLogo from "/prepx-logo.png";
 
 const navItems = [
   { label: "Dashboard", icon: LayoutDashboard, path: "/" },
   { label: "Students", icon: GraduationCap, path: "/students" },
+  { label: "Leads", icon: UserPlus, path: "/leads" },
   { label: "Parents", icon: Users, path: "/parents" },
   { label: "Teachers", icon: UserCog, path: "/teachers" },
+  { label: "Courses", icon: BookOpen, path: "/courses" },
   { label: "Batches", icon: Layers, path: "/batches" },
   { label: "Attendance", icon: CalendarCheck, path: "/attendance" },
   { label: "Exams", icon: ClipboardList, path: "/exams" },
   { label: "Fees", icon: DollarSign, path: "/fees" },
+  { label: "Tasks", icon: CheckSquare, path: "/tasks" },
   { label: "Messages", icon: MessageSquare, path: "/messages" },
   { label: "Notifications", icon: Bell, path: "/notifications" },
   { label: "Reports", icon: BarChart3, path: "/reports" },
@@ -112,7 +118,7 @@ export default function AppSidebar({
       {(!collapsed || mobileOpen) && (
         <div className="border-t border-sidebar-border p-4">
           <p className="text-[10px] text-sidebar-muted text-center leading-tight">
-            <span className="font-medium text-sidebar-foreground">DESIGNED by SUHAIB & DEVELOPED by SHAHEEN</span>
+            <span className="font-medium text-sidebar-foreground">DESIGNED AND DEVELOPED BY SUHAIB REYAZ & SHAHEEN NAZIR</span>
           </p>
         </div>
       )}
